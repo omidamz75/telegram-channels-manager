@@ -2,22 +2,24 @@ import pytest
 from telegram import Update
 from telegram.ext import ContextTypes
 from bot.handler.help.help import help_handler, HELP_MESSAGE
+from unittest.mock import AsyncMock
+from datetime import datetime
 
 @pytest.mark.asyncio
 async def test_help_command():
-    # Mock objects
-    update = Update.de_json({
-        "message": {
-            "message_id": 1,
-            "text": "/help",
-            "chat": {"id": 123, "type": "private"}
-        }
-    }, None)
+    # Create mock message
+    message = AsyncMock()
+    message.reply_text = AsyncMock()
     
-    context = ContextTypes.DEFAULT_TYPE()
+    # Create mock update
+    update = AsyncMock(spec=Update)
+    update.message = message
     
-    # Test help handler
+    # Create context
+    context = AsyncMock(spec=ContextTypes.DEFAULT_TYPE)
+    
+    # Call handler
     await help_handler(update, context)
     
-    # Verify that reply_text was called with HELP_MESSAGE
-    assert update.message.reply_text.call_args[0][0] == HELP_MESSAGE
+    # Assert
+    message.reply_text.assert_called_once_with(HELP_MESSAGE)
