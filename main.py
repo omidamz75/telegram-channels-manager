@@ -4,6 +4,7 @@ import os
 from bot.handler.start.start import start_handler
 from bot.handler.help.help import help_handler
 from bot.handler.settings.settings import settings_handler, settings_callback_handler
+from bot.handler.channel_management.add_channel import add_channel_handler
 
 # Load environment variables
 load_dotenv()
@@ -20,6 +21,7 @@ def main():
     application.add_handler(CommandHandler('help', help_handler))
     application.add_handler(CommandHandler('settings', settings_handler))
     application.add_handler(CallbackQueryHandler(settings_callback_handler))
+    application.add_handler(add_channel_handler)  # Changed this line
     
     # Start the bot
     print('Bot is running...')
