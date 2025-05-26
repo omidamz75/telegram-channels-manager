@@ -1,0 +1,24 @@
+# Virtual Environment
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+
+# Environment variables
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# Telethon session files
+*.session
+*.session-journal
+
+# Project specific
+bot_session
+logs/
+backup/
