@@ -1,9 +1,0 @@
-README.md
-setup.py
-bot/__init__.py
-telegram_manager.egg-info/PKG-INFO
-telegram_manager.egg-info/SOURCES.txt
-telegram_manager.egg-info/dependency_links.txt
-telegram_manager.egg-info/top_level.txt
-tests/test_help.py
-tests/test_settings.py
