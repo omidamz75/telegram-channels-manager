@@ -1,5 +1,5 @@
-from telegram import Update
-from telegram.ext import ContextTypes
+from telethon import events
+from ..client import client
 
 HELP_MESSAGE = """
 📚 راهنمای دستورات ربات:
@@ -8,7 +8,6 @@ HELP_MESSAGE = """
 /start - شروع کار با ربات
 /help - مشاهده این راهنما
 /settings - تنظیمات ربات
-/auth - احراز هویت تلگرام 🔐
 
 🔸 مدیریت کانال:
 /add_channel - افزودن کانال جدید
@@ -16,9 +15,13 @@ HELP_MESSAGE = """
 /channel_stats - آمار کانال‌ها
 /export_members - دریافت لیست اعضای کانال 📥
 
-📌 نکته: برای افزودن کانال، ابتدا ربات را ادمین کانال کنید.
+📌 نکات مهم:
+• برای افزودن کانال، ابتدا ربات را ادمین کانال کنید
+• احراز هویت مدیر از طریق کنسول انجام می‌شود
+• در صورت نیاز به احراز هویت مجدد، با مدیر سیستم تماس بگیرید
 """
 
-async def help_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+@client.on(events.NewMessage(pattern='/help'))
+async def help_handler(event):
     """Handle the /help command"""
-    await update.message.reply_text(HELP_MESSAGE)
+    await event.respond(HELP_MESSAGE)

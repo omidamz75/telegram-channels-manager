@@ -1,5 +1,5 @@
-from telegram import Update
-from telegram.ext import ContextTypes
+from telethon import events
+from ..client import client
 
 WELCOME_MESSAGE = """
 🌟 سلام! به ربات مدیریت کانال خوش آمدید
@@ -10,6 +10,7 @@ WELCOME_MESSAGE = """
 /help - راهنمای دستورات
 """
 
-async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+@client.on(events.NewMessage(pattern='/start'))
+async def start_handler(event):
     """Handle the /start command"""
-    await update.message.reply_text(WELCOME_MESSAGE)
+    await event.respond(WELCOME_MESSAGE)
