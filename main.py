@@ -5,21 +5,33 @@ from pathlib import Path
 from telethon.sync import TelegramClient
 from telethon.sessions import StringSession
 from telethon.errors import SessionPasswordNeededError
+from telethon.tl.types import BotCommand
+from telethon.tl.functions.bots import SetBotCommandsRequest
+from telethon.tl.types import BotCommandScopeDefault
 from dotenv import load_dotenv
+from bot.utils.logging import logger
 
 # Load environment variables
 load_dotenv()
+logger.info("Environment variables loaded")
 
 # Telegram API credentials
 API_ID = int(os.getenv('TELEGRAM_API_ID'))
 API_HASH = os.getenv('TELEGRAM_API_HASH')
 BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 
+if not all([API_ID, API_HASH, BOT_TOKEN]):
+    logger.critical("Missing required environment variables (API_ID, API_HASH, or BOT_TOKEN)")
+else:
+    logger.debug("API credentials loaded successfully")
+
 def get_session_string():
     """Get session string from various sources"""
+    logger.debug("Attempting to get session string")
     # Try getting from env first
     session = os.getenv('TELEGRAM_SESSION_STRING')
     if session:
+        logger.info("Session string found in environment variables")
         return session
         
     # Try getting from config file
@@ -28,9 +40,13 @@ def get_session_string():
         try:
             with open(config_file, 'r') as f:
                 data = json.load(f)
-                return data.get('session_string')
+                session = data.get('session_string')
+                if session:
+                    logger.info("Session string loaded from config file")
+                    return session
+                logger.warning("Config file exists but no session string found")
         except Exception as e:
-            print(f"Error reading config file: {e}")
+            logger.error(f"Error reading config file: {e}")
     
     return None
 
@@ -93,17 +109,17 @@ async def generate_session():
         await client.disconnect()
 
 async def main():
-    print("Starting bot...")
+    logger.info("Starting bot...")
     
     # Get session string
     session = get_session_string()
     if not session:
-        print("No valid session string found.")
+        logger.warning("No valid session string found")
         session = await generate_session()
         if not session:
-            print("Failed to generate session string. Please try again.")
+            logger.error("Failed to generate session string")
             return
-        print("\nPlease restart the bot to use the new session.")
+        logger.info("New session generated, restart required")
         return
     
     try:
@@ -118,34 +134,57 @@ async def main():
             lang_code="en"
         )
         
-        print("Connecting to Telegram...")
+        logger.info("Connecting to Telegram...")
         await client.connect()
         
         if not await client.is_user_authorized():
-            print("Session is no longer valid. Generating new session...")
+            logger.error("Session is no longer valid")
             session = await generate_session()
             if not session:
-                print("Failed to generate new session. Please try again.")
+                logger.error("Failed to generate new session")
                 return
-            print("\nPlease restart the bot to use the new session.")
+            logger.info("New session generated, restart required")
             return
             
-        print("Successfully connected!")
-        print("Starting bot operations...")
+        logger.info("Successfully connected!")
         
-        # Start the bot
-        from bot.handler.client import client as bot_client
-        await bot_client.start(bot_token=BOT_TOKEN)
-        print("Bot is running...")
-        print("Press Ctrl+C to stop")
-        
-        await bot_client.run_until_disconnected()
-        
+        # Import and initialize command handlers
+        try:
+            import bot.handler
+            from bot.handler import AVAILABLE_COMMANDS
+            logger.info("Command handlers loaded successfully")
+            
+            # Start the bot
+            from bot.handler.client import client as bot_client
+            await bot_client.start(bot_token=BOT_TOKEN)
+            
+            # Set bot commands
+            await bot_client(SetBotCommandsRequest(
+                scope=BotCommandScopeDefault(),
+                lang_code="fa",
+                commands=[
+                    BotCommand(command=cmd.split(' - ')[0][1:], description=cmd.split(' - ')[1])
+                    for cmd in AVAILABLE_COMMANDS
+                ]
+            ))
+            logger.info("Bot commands registered with Telegram")
+            
+            logger.info("Bot is running...")
+            print("Bot is running...")
+            print("Press Ctrl+C to stop")
+            
+            await bot_client.run_until_disconnected()
+            
+        except Exception as e:
+            logger.error(f"Error initializing handlers: {str(e)}")
+            raise
+            
     except Exception as e:
-        print(f"\nError: {str(e)}")
+        logger.error(f"Bot error: {str(e)}")
     finally:
         if 'client' in locals() and client.is_connected():
             await client.disconnect()
+            logger.info("Bot disconnected")
 
 if __name__ == '__main__':
     try:
