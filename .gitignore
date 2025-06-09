@@ -48,7 +48,6 @@ session.json
 *_session.json
 
 # Project specific
-docs/
 *.db
 error.md
 channels.db
